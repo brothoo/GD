@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Google Drive Mini</title>
+  <script src="react.development.js"></script>
+  <script src="react-dom.development.js"></script>
+  <script src="babel.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    .drive-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      background-color: #fdfdfd;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .drive-card:hover {
+      background-color: #f1f3f4;
+      transform: scale(1.02);
+    }
+    .file-icon {
+      font-size: 40px;
+      color: #4285F4;
+    }
+    .btn-add {
+        background-color: white;
+        width: 100px;
+        height: fit-content;
+        box-shadow: 0px 1px 5px 0px gray;
+        border: none;
+        display: flex;
+        gap: 6px;
+        border-radius: 10px;
+        padding-top: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: semibold;
+        position: absolute;
+        left: 10px;
+        top: 68px;
+    }
+    .text-icon{
+        padding-top: 8px;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <div id="app"></div>
+
+  <script src="bootstrap.bundle.min.js"></script>
+
+  <script type="text/babel">
+    const app = document.getElementById('app');
+    const root = ReactDOM.createRoot(app);
+    
+    function DriveApp() {
+      const [files, setFiles] = React.useState([]);
+      const [fileName, setFileName] = React.useState("");
+      const [currentPath, setCurrentPath] = React.useState([]);
+    
+      const getCurrentFolder = () => {
+        let folder = { files };
+        for (let folderName of currentPath) {
+          folder = folder.files.find(f => f.type === "folder" && f.name === folderName);
+        }
+        return folder;
+      };
+    
+      const handleAddFile = () => {
+        if (fileName.trim() !== "") {
+          const folder = getCurrentFolder();
+          folder.files.push({ type: "file", name: fileName });
+          setFiles([...files]);
+          setFileName("");
+        }
+      };
+    
+      const handleAddFolder = () => {
+        if (fileName.trim() !== "") {
+          const folder = getCurrentFolder();
+          folder.files.push({ type: "folder", name: fileName, files: [] });
+          setFiles([...files]);
+          setFileName("");
+        }
+      };
+    
+      const handleOpenFolder = (folderName) => {
+        setCurrentPath([...currentPath, folderName]);
+      };
+    
+      const handleGoBack = () => {
+        setCurrentPath(currentPath.slice(0, -1));
+      };
+    
+      const handleRenameItem = (index) => {
+        const newName = prompt("Masukkan nama baru:");
+        if (newName && newName.trim() !== "") {
+          const folder = getCurrentFolder();
+          folder.files[index].name = newName;
+          setFiles([...files]);
+        }
+      };
+    
+      const handleDeleteItem = (index) => {
+        if (confirm("Yakin ingin menghapus item ini?")) {
+          const folder = getCurrentFolder();
+          folder.files.splice(index, 1);
+          setFiles([...files]);
+        }
+      };
+    
+      const folder = getCurrentFolder();
+    
+      return (
+        <div className="container mt-4">
+          <h3 className="mb-4"><i className="bi bi-cloud-arrow-up"></i> Google Drive Mini</h3>
+    
+          <div className="input-group mb-3">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Nama file / folder..."
+              value={fileName}
+              onChange={(e) => setFileName(e.target.value)}
+            />
+          </div>
+    
+          <div className="d-flex gap-2 mb-4">
+            <button className="btn btn-primary" onClick={handleAddFile}>
+              <i className="bi bi-file-earmark-plus"></i> File Baru
+            </button>
+            <button className="btn btn-warning" onClick={handleAddFolder}>
+              <i className="bi bi-folder-plus"></i> Folder Baru
+            </button>
+            {currentPath.length > 0 && (
+              <button className="btn btn-secondary" onClick={handleGoBack}>
+                <i className="bi bi-arrow-left"></i> Kembali
+              </button>
+            )}
+          </div>
+    
+          <div className="row g-3">
+            {folder.files.length === 0 ? (
+              <p className="text-muted">Belum ada file atau folder.</p>
+            ) : (
+              folder.files.map((item, index) => (
+                <div key={index} className="col-6 col-md-3">
+                  <div className="drive-card position-relative">
+                    <div
+                      className="file-icon"
+                      onClick={() => item.type === "folder" && handleOpenFolder(item.name)}
+                      style={{ cursor: item.type === "folder" ? "pointer" : "default" }}
+                    >
+                      {item.type === "file" ? "📄" : "📁"}
+                    </div>
+                    <div className="mt-2">{item.name}</div> 
+                    
+                    {/* Action Button */}
+                    <div className="d-flex justify-content-center gap-2 mt-2">
+                      <button className="btn btn-sm btn-outline-secondary" onClick={() => handleRenameItem(index)}>
+                        <i className="bi bi-pencil-square"></i>
+                      </button>
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteItem(index)}>
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    root.render(<DriveApp />);
+    </script>
+    
+
+</body>
+</html>
